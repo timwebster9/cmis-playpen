@@ -14,18 +14,19 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableAutoConfiguration
 public class App 
 {
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws Exception {
 
         final ConfigurableApplicationContext ctx =
                 new SpringApplicationBuilder(App.class).run(args);
 
         final Session session = ctx.getBean(CmisSessionFactory.class).getSession();
-        final CmisObject doc = session.getObject("idd_740F356E-5D0D-46A9-A0E4-24FFE0B74DC7");
+        final CmisObject doc = session.getObject("c51ba30c-68f2-46d7-b448-4e7c3b53da79;1.0");
 
         final CmisService service = ctx.getBean(CmisService.class);
         final String docUrl = service.getDocumentURL(doc, session);
 
-       // service.getDocumentByUrl("http://10.35.1.151:9080/fncmis/resources/aquilaDEV/ContentStream/idd_740F356E-5D0D-46A9-A0E4-24FFE0B74DC7/0/38333+Java+7+JNLP+Security+Changes+DE.docx");
+        final Object response = service.getDocumentByUrlJdk(docUrl);
+        //final byte[] content = service.getDocumentByUrl(docUrl);
 
         System.out.println("Document URL: " + docUrl);
     }
