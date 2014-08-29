@@ -6,6 +6,7 @@ import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class CmisSessionFactory {
     @Value("${cmis.repository.name}")
     private String cmisRepositoryName;
 
+    @Bean
     public Session getSession() {
         SessionFactory factory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();

@@ -4,6 +4,9 @@ import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.bindings.spi.LinkAccess;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -14,6 +17,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +25,8 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by timw on 27/08/14.
@@ -34,7 +40,13 @@ public class CmisService {
     @Value("${cmis.password}")
     private String cmisPassword;
 
-    public String getDocumentURL(final CmisObject document, final Session session) {
+    @Autowired
+    private ContentReader contentReader;
+
+    @Autowired
+    private Session session;
+
+    public String getDocumentURL(final CmisObject document) {
         if (!(document instanceof Document)) {
             return null;
         }
@@ -65,6 +77,14 @@ public class CmisService {
 //        connection.setRequestProperty("Authorization", "Basic " + encodedLogin);
         connection.connect();
         return connection.getContent();
+    }
+
+    public void addDocument(final String path) {
+        final Map<String, Object> props = new HashMap<>();
+        props.put(PropertyIds.OBJECT_TYPE_ID, "admoptional1");
+        props.put(PropertyIds.NAME, "daejaTextTest.txt");
+        final ContentStream contentStream = this.contentReader.getContentStream(path, path);
+        session.getRootFolder().createDocument(props, contentStream, VersioningState.MAJOR);
     }
 
 
