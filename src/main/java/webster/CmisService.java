@@ -79,10 +79,10 @@ public class CmisService {
         return connection.getContent();
     }
 
-    public void addDocument(final String path) {
+    public void addDocument(final String path, final String fileName) {
         final Map<String, Object> props = new HashMap<>();
-        props.put(PropertyIds.OBJECT_TYPE_ID, "admoptional1");
-        props.put(PropertyIds.NAME, "daejaTextTest.txt");
+        props.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+        props.put(PropertyIds.NAME, fileName);
         final ContentStream contentStream = this.contentReader.getContentStream(path, path);
         session.getRootFolder().createDocument(props, contentStream, VersioningState.MAJOR);
     }

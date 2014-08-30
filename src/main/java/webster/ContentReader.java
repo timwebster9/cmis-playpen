@@ -35,7 +35,9 @@ public class ContentReader {
         final String mimeType;
 
         try {
-            mimeType = this.getMimeType(stream);
+            //mimeType = this.getMimeType(stream);
+            mimeType = "application/octet-stream"; //this.getMimeType(stream);
+            LOG.info("mime type is {}", mimeType);
         } catch (Exception e) {
             throw new RuntimeException("Unable to detect mime type for file: [" + filePath + "]", e);
         }
