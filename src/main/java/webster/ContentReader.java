@@ -1,23 +1,17 @@
 package webster;
 
+import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
 
 /**
  * Read a file from disk.
@@ -28,48 +22,30 @@ public class ContentReader {
     private static final Logger LOG = LoggerFactory.getLogger(ContentReader.class);
     private static final Detector MIME_TYPE_DETECTOR = TikaConfig.getDefaultConfig().getDetector();
 
-    public ContentStream getContentStream(final String filePath, final String documentName) {
-        final byte[] bytes = this.readFileFromPath(filePath);
-        final InputStream stream = new ByteArrayInputStream(bytes);
+    @Autowired
+    private Session session;
 
-        final String mimeType;
+    public ContentStream createContentStream(final String filePath) {
+        final File file = new File(filePath);
+        InputStream inputStream = this.getBufferedInputStream(file);
+        final String mimeType = this.getMimeType(file);
+        return session.getObjectFactory().createContentStream(file.getName(), file.length(), mimeType, inputStream);
+    }
 
+    private InputStream getBufferedInputStream(final File file) {
         try {
-            //mimeType = this.getMimeType(stream);
-            mimeType = "application/octet-stream"; //this.getMimeType(stream);
-            LOG.info("mime type is {}", mimeType);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to detect mime type for file: [" + filePath + "]", e);
+            return new BufferedInputStream(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
-
-        return new ContentStreamImpl(documentName, BigInteger.valueOf(bytes.length), mimeType, stream);
     }
 
-    private String getMimeType(final InputStream inputStream) throws Exception {
-        return MIME_TYPE_DETECTOR.detect(TikaInputStream.get(inputStream), new Metadata()).toString();
-    }
-
-    private byte[] readFileFromPath(final String filePath) {
-
-        final Path path = Paths.get(filePath);
-
+    private String getMimeType(final File file)  {
         try {
-            return this.readFile(path);
-        }
-        catch (final IOException e) {
-            throw new RuntimeException("Unable to read file: [" + path + "]", e);
-        }
-    }
-
-    private byte[] readFile(final Path path) throws IOException {
-        try (final FileChannel inChannel = FileChannel.open(path)) {
-
-            LOG.info("Read file {} size is: {} bytes.", path, inChannel.size());
-            final MappedByteBuffer buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-            buffer.load();
-            final byte[] data = new byte[(int)inChannel.size()];
-            buffer.get(data);
-            return data;
+            final String mimeType = MIME_TYPE_DETECTOR.detect(TikaInputStream.get(file), new Metadata()).toString();
+            return mimeType;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

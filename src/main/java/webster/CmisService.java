@@ -25,7 +25,9 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +41,9 @@ public class CmisService {
 
     @Value("${cmis.password}")
     private String cmisPassword;
+
+    @Value("${cmis.object.type}")
+    private String cmisObjectType;
 
     @Autowired
     private ContentReader contentReader;
@@ -79,14 +84,31 @@ public class CmisService {
         return connection.getContent();
     }
 
-    public void addDocument(final String path, final String fileName) {
-        final Map<String, Object> props = new HashMap<>();
-        props.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
-        props.put(PropertyIds.NAME, fileName);
-        final ContentStream contentStream = this.contentReader.getContentStream(path, path);
-        session.getRootFolder().createDocument(props, contentStream, VersioningState.MAJOR);
+    public void addDocumentMultipleTimes(final String path, final String fileName, final int count) {
+        for (int i=0; i<count; i++) {
+            this.addDocument(path, fileName);
+        }
     }
 
+    public void addDocument(final String path, final String fileName) {
+        final Map<String, Object> props = new HashMap<>();
+        props.put(PropertyIds.OBJECT_TYPE_ID, this.cmisObjectType);
+        props.put(PropertyIds.NAME, fileName);
+
+        final List<String> bgroup = new ArrayList<>();
+        bgroup.add("MJ1");
+
+        final List<String> documentClass = new ArrayList<>();
+        documentClass.add("SCAN");
+
+        props.put("bgroup", bgroup);
+        props.put("documentClass", documentClass);
+        final ContentStream contentStream = this.contentReader.createContentStream(path);
+        //session.getRootFolder().createDocument(props, contentStream, VersioningState.MAJOR);
+
+        session.createDocument(props, session.getRootFolder(), contentStream,
+                VersioningState.MAJOR, null, null, null);
+    }
 
     public byte[] getDocumentByUrl(final String documentUrl) throws Exception {
 

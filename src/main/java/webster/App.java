@@ -13,6 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class App 
 {
     private static final String ADD_FILENAME = "msword.doc";
+    //private static final String ADD_FILENAME = "test.xlsx";
 
 
     public static void main( String[] args ) throws Exception {
@@ -24,7 +25,7 @@ public class App
 //        final CmisObject doc = session.getObject("idd_AD5347B1-B47D-4070-AB64-176E3666AD1F");
 
         final CmisService service = ctx.getBean(CmisService.class);
-        service.addDocument("src/main/resources/" + ADD_FILENAME, ADD_FILENAME);
+        service.addDocumentMultipleTimes("src/main/resources/" + ADD_FILENAME, ADD_FILENAME, 50);
 //        final String docUrl = service.getDocumentURL(doc, session);
 //
 //        final Object response = service.getDocumentByUrlJdk(docUrl);
